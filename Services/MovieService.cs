@@ -17,8 +17,8 @@ namespace FilmLogAPI.Services
         public MovieService(HttpClient httpClient, IConfiguration config, ILogger<MovieService> logger)
         {
             _httpClient = httpClient;
-            _config = config["OmdbSettings:ApiKey"]!;
-            _logger = logger["omdbSettings:BaseUrl"]!;
+            _config = config;
+            _logger = logger;
         }
 
         public async Task<List<MovieDto>> SearchMoviesAsync(string title)
@@ -38,7 +38,7 @@ namespace FilmLogAPI.Services
                 throw new InvalidOperationException("OMDb base URL is not configured.");
             }
 
-            var url = $"{baseUrl}/?apikey={apiKey}&s={Uri.EscapeDataString(title)}&type=movie";
+            var url = $"{baseUrl}?apikey={apiKey}&s={Uri.EscapeDataString(title)}&type=movie";
 
             _logger.LogInformation("Calling OMDb search: {Url}", url);
 
@@ -58,7 +58,7 @@ namespace FilmLogAPI.Services
             if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(baseUrl))
                 throw new InvalidOperationException("OMDb API key or base URL is not configured.");
 
-            var url = $"{baseUrl}/?apikey={apiKey}&t={Uri.EscapeDataString(title)}";
+            var url = $"{baseUrl}?apikey={apiKey}&t={Uri.EscapeDataString(title)}";
 
             var result = await _httpClient.GetFromJsonAsync<OmdbMovieDetail>(url);
 
