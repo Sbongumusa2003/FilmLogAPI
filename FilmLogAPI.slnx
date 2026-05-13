@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../FilmLogAPI.Tests/FilmLogAPI.Tests.csproj" Id="6794c0cf-cd9d-484a-bb48-18fc6d345538" />
   <Project Path="FilmLogAPI.csproj" />
 </Solution>

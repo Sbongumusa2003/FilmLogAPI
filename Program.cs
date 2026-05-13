@@ -8,37 +8,22 @@ using FilmLogAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowIonic", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:8100",
-                "http://localhost:4200",
-                "http://localhost:8080",
-                "capacitor://localhost",
-                "ionic://localhost" 
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
-
+// ── Database ────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=filmlog.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ── Repositories ────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
 builder.Services.AddScoped<IWatchedRepository, WatchedRepository>();
+
+// ── Movie Service (uses HttpClient to call OMDb) ─────────────────────────────
 builder.Services.AddHttpClient<IMovieService, MovieService>();
 
+// ── JWT Authentication ───────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing from configuration.");
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -54,12 +39,40 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+// ── CORS — allow the Ionic dev server ────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("IonicApp", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:8100",   // ionic serve default
+                "http://localhost:4200",   // ng serve default
+                "capacitor://localhost",
+                "ionic://localhost"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// ── Controllers + Swagger ────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ── Auto-apply migrations on startup ─────────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+// ── Middleware pipeline ───────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -68,17 +81,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowIonic");
+app.UseCors("IonicApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
 
 app.Run();
