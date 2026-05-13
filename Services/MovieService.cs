@@ -17,8 +17,8 @@ namespace FilmLogAPI.Services
         public MovieService(HttpClient httpClient, IConfiguration config, ILogger<MovieService> logger)
         {
             _httpClient = httpClient;
-            _config = config;
-            _logger = logger;
+            _config = config["OmdbSettings:ApiKey"]!;
+            _logger = logger["omdbSettings:BaseUrl"]!;
         }
 
         public async Task<List<MovieDto>> SearchMoviesAsync(string title)
