@@ -73,7 +73,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors("AllowIonic");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

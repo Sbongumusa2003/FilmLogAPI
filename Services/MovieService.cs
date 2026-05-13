@@ -1,4 +1,5 @@
 ﻿using FilmLogAPI.Models;
+using System.Text.Json;
 
 namespace FilmLogAPI.Services
 {
@@ -13,6 +14,11 @@ namespace FilmLogAPI.Services
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
         private readonly ILogger<MovieService> _logger;
+
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         public MovieService(HttpClient httpClient, IConfiguration config, ILogger<MovieService> logger)
         {
@@ -42,7 +48,12 @@ namespace FilmLogAPI.Services
 
             _logger.LogInformation("Calling OMDb search: {Url}", url);
 
-            var response = await _httpClient.GetFromJsonAsync<OmdbSearchResponse>(url);
+            var httpResponse = await _httpClient.GetAsync(url);
+            var json = await httpResponse.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("OMDb raw response: {Json}", json);
+
+            var response = JsonSerializer.Deserialize<OmdbSearchResponse>(json, _jsonOptions);
 
             if (response?.Search == null || response.Response == "False")
                 return new List<MovieDto>();
@@ -60,7 +71,12 @@ namespace FilmLogAPI.Services
 
             var url = $"{baseUrl}?apikey={apiKey}&t={Uri.EscapeDataString(title)}";
 
-            var result = await _httpClient.GetFromJsonAsync<OmdbMovieDetail>(url);
+            var httpResponse = await _httpClient.GetAsync(url);
+            var json = await httpResponse.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("OMDb detail raw response: {Json}", json);
+
+            var result = JsonSerializer.Deserialize<OmdbMovieDetail>(json, _jsonOptions);
 
             if (result == null || result.Response == "False") return null;
 
