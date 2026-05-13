@@ -8,20 +8,34 @@ using FilmLogAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ────────────────────────────────────────────────────────────────
+// ── Controllers ────────────────────────────────────────────────────
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// ── CORS ───────────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowIonic", policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+        {
+            var uri = new Uri(origin);
+            return uri.Host == "localhost";
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
+// ── Database (SQLite) ──────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── Repositories ────────────────────────────────────────────────────────────
-builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
-builder.Services.AddScoped<IWatchedRepository, WatchedRepository>();
-
-// ── Movie Service (uses HttpClient to call OMDb) ─────────────────────────────
-builder.Services.AddHttpClient<IMovieService, MovieService>();
-
-// ── JWT Authentication ───────────────────────────────────────────────────────
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key is missing from configuration.");
+// ── JWT Authentication ─────────────────────────────────────────────
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key missing");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer missing");
+var jwtAud = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Jwt:Audience missing");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -32,47 +46,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAud,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
 builder.Services.AddAuthorization();
 
-// ── CORS — allow the Ionic dev server ────────────────────────────────────────
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("IonicApp", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:8100",   // ionic serve default
-                "http://localhost:4200",   // ng serve default
-                "capacitor://localhost",
-                "ionic://localhost"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
+// ── App Services & Repositories ────────────────────────────────────
+builder.Services.AddHttpClient<IMovieService, MovieService>();
+builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
+builder.Services.AddScoped<IWatchedRepository, WatchedRepository>();
 
-// ── Controllers + Swagger ────────────────────────────────────────────────────
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+// ──────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Auto-apply migrations on startup ─────────────────────────────────────────
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
-
-// ── Middleware pipeline ───────────────────────────────────────────────────────
+// ── Middleware pipeline ────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -81,11 +71,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("IonicApp");
+app.UseCors("AllowIonic");        // ← must be before Auth
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ── Auto-apply migrations on startup ──────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
