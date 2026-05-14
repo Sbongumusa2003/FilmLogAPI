@@ -17,11 +17,13 @@ namespace FilmLogAPI.Controllers
         {
             _watchlistRepo = watchlistRepo;
         }
+
         private int GetUserId()
         {
             var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(value, out var id) ? id : 0;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetWatchlist()
         {
@@ -31,11 +33,13 @@ namespace FilmLogAPI.Controllers
             var items = await _watchlistRepo.GetByUserIdAsync(userId);
             return Ok(items);
         }
+
         [HttpPost]
         public async Task<IActionResult> AddToWatchlist([FromBody] AddMovieDto dto)
         {
             var userId = GetUserId();
             if (userId == 0) return Unauthorized();
+
             var existing = await _watchlistRepo.GetByUserAndImdbIdAsync(userId, dto.ImdbID);
             if (existing != null)
                 return Conflict(new { message = "Movie already in watchlist." });
@@ -52,16 +56,21 @@ namespace FilmLogAPI.Controllers
                 UserId = userId,
                 AddedAt = DateTime.UtcNow
             };
+
             var created = await _watchlistRepo.AddAsync(item);
             return CreatedAtAction(nameof(GetWatchlist), new { id = created.Id }, created);
         }
-        [HttpDelete("{title}")]
-        public async Task<IActionResult> RemoveFromWatchlist(string title)
+
+        /// <summary>
+        /// DELETE /api/watchlist/{id}  — removes by primary key (spec requirement)
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> RemoveFromWatchlist(int id)
         {
             var userId = GetUserId();
             if (userId == 0) return Unauthorized();
 
-            var deleted = await _watchlistRepo.DeleteByTitleAsync(userId, title);
+            var deleted = await _watchlistRepo.DeleteByIdAsync(userId, id);
             if (!deleted) return NotFound(new { message = "Movie not found in watchlist." });
 
             return NoContent();
