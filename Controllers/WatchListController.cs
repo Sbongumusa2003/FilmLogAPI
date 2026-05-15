@@ -61,9 +61,6 @@ namespace FilmLogAPI.Controllers
             return CreatedAtAction(nameof(GetWatchlist), new { id = created.Id }, created);
         }
 
-        /// <summary>
-        /// DELETE /api/watchlist/{id}  — removes by primary key (spec requirement)
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> RemoveFromWatchlist(int id)
         {
