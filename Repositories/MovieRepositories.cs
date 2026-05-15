@@ -9,9 +9,7 @@ namespace FilmLogAPI.Repositories
         Task<List<WatchlistItem>> GetByUserIdAsync(int userId);
         Task<WatchlistItem?> GetByUserAndImdbIdAsync(int userId, string imdbId);
         Task<WatchlistItem> AddAsync(WatchlistItem item);
-        /// <summary>Delete by primary key — matches DELETE /api/watchlist/{id}</summary>
         Task<bool> DeleteByIdAsync(int userId, int id);
-        /// <summary>Delete by IMDb ID — used internally when marking as watched</summary>
         Task<bool> DeleteByImdbIdAsync(int userId, string imdbId);
     }
 
@@ -69,9 +67,6 @@ namespace FilmLogAPI.Repositories
             return true;
         }
     }
-
-    // ──────────────────────────────────────────────────────────
-
     public interface IWatchedRepository
     {
         Task<List<WatchedItem>> GetByUserIdAsync(int userId);
@@ -139,11 +134,6 @@ namespace FilmLogAPI.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
-
-        /// <summary>
-        /// Resets TimesWatched to 1 (not 0 — a movie in the watched list was watched at least once).
-        /// The spec says "Reset TimesWatched counter"; resetting to 1 is semantically correct.
-        /// </summary>
         public async Task<bool> ResetTimesWatchedAsync(int id, int userId)
         {
             var item = await _context.WatchedItems
