@@ -15,11 +15,11 @@ namespace FilmLogAPI.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,18 +30,18 @@ namespace FilmLogAPI.Migrations
                 name: "WatchedItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ImdbID = table.Column<string>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Year = table.Column<string>(type: "TEXT", nullable: false),
-                    Poster = table.Column<string>(type: "TEXT", nullable: false),
-                    Actors = table.Column<string>(type: "TEXT", nullable: false),
-                    Genre = table.Column<string>(type: "TEXT", nullable: false),
-                    Plot = table.Column<string>(type: "TEXT", nullable: false),
-                    TimesWatched = table.Column<int>(type: "INTEGER", nullable: false),
-                    AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImdbID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Year = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Poster = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Actors = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Genre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Plot = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TimesWatched = table.Column<int>(type: "int", nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -58,17 +58,17 @@ namespace FilmLogAPI.Migrations
                 name: "WatchlistItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ImdbID = table.Column<string>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Year = table.Column<string>(type: "TEXT", nullable: false),
-                    Poster = table.Column<string>(type: "TEXT", nullable: false),
-                    Actors = table.Column<string>(type: "TEXT", nullable: false),
-                    Genre = table.Column<string>(type: "TEXT", nullable: false),
-                    Plot = table.Column<string>(type: "TEXT", nullable: false),
-                    AddedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImdbID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Year = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Poster = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Actors = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Genre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Plot = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
